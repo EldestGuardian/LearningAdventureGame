@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="js/phaser/phaser.min.js"></script>
+    </head>
+    <body>
+        <script>
+             var config = {
+                type: Phaser.AUTO,
+                physics: {
+                    default: 'arcade',
+                    arcade: {
+                        gravity: { y: 300 },
+                        debug: false
+                    }
+                },
+                width: 1720,
+                height: 800,
+                scene: {
+                    preload: preload,
+                    create: create,
+                    update: update
+                }
+            };
+
+            var player;
+            var stars;
+            var bombs;
+            var platforms;
+            var cursors;
+            var score = 0;
+            var medicalScore = 0;
+            var fuelscore = 0;
+            var gameOver = false;
+            var score= 0;
+            var scoreText;
+            var fuelcan;
+            var medication;
+            var game = new Phaser.Game(config);
+            
+
+            function preload ()
+            {
+                this.load.image('sky', 'assets/sky.png');
+                this.load.image('brick', 'assets/bgwall.png');
+                this.load.image('ground', 'assets/floor.png');
+                this.load.image('star', 'assets/star.png');
+                this.load.image('bomb', 'assets/bomb.png');
+                this.load.image('forklift', 'assets/forklifttransparent.png');
+                this.load.image('crate2', 'assets/crate2.png')
+                this.load.image('fuel', 'assets/fueltoken.png');
+                this.load.image('medical', 'assets/medication.png');
+                this.load.image('grassblock', 'folder/grassblock2.png');
+                this.load.image('longblock', 'folder/longgrassblock2.png');
+                this.load.image('dirtlong', 'folder/dirtlong.png');
+                this.load.image('birchtree', 'folder/birchtree.png');
+                this.load.spritesheet('robot', 
+                    'assets/robotmovementfinalfix.png',
+                    { frameWidth: 143, frameHeight: 190 }
+                );
+
+                cursors = this.input.keyboard.createCursorKeys();
+            }
+
+            function create ()
+            {
+                this.add.image(400,300,'sky');
+                this.add.image(1200,300,'sky');
+                this.add.image(2000,300,'sky');
+                
+                brickwall = this.add.group({
+                    key: 'brick',
+                    repeat: 2 ,
+                    setXY: { x: 800, y: 400, stepX: 1600},
+                    setScale: { x: 2, y: 2}
+                });
+
+                //All collidable platforms
+                platforms = this.physics.add.staticGroup();
+
+                platforms.create(-600, 650, 'longblock').setScale(0.4).refreshBody();
+                platforms.create(-600, 840, 'dirtlong').setScale(0.4).refreshBody();
+                platforms.create(-200, 650, 'longblock').setScale(0.4).refreshBody();
+                platforms.create(-200, 840, 'dirtlong').setScale(0.4).refreshBody();
+                platforms.create(200, 650, 'longblock').setScale(0.4).refreshBody();
+                platforms.create(200, 840, 'dirtlong').setScale(0.4).refreshBody();
+                platforms.create(600, 650, 'longblock').setScale(0.4).refreshBody();
+                platforms.create(600, 840, 'dirtlong').setScale(0.4).refreshBody();
+                platforms.create(1000, 650, 'longblock').setScale(0.4).refreshBody();
+                platforms.create(1000, 840, 'dirtlong').setScale(0.4).refreshBody();
+                platforms.create(1400, 650, 'longblock').setScale(0.4).refreshBody();
+                platforms.create(1400, 840, 'dirtlong').setScale(0.4).refreshBody();
+                platforms.create(1800, 650, 'longblock').setScale(0.4).refreshBody();
+                platforms.create(1800, 840, 'dirtlong').setScale(0.4).refreshBody();
+                platforms.create(2200, 650, 'longblock').setScale(0.4).refreshBody();
+                platforms.create(2200, 840, 'dirtlong').setScale(0.4).refreshBody();
+                platforms.create(2600, 650, 'longblock').setScale(0.4).refreshBody();
+                platforms.create(2600, 840, 'dirtlong').setScale(0.4).refreshBody();
+                this.add.image(500, 305, 'birchtree').setScale(0.5);
+                
+                //Makes the robot the maincharacter
+                player = this.physics.add.sprite(200, 100, 'robot');
+
+                //Rebound of the bounce to add realism
+                player.setBounce(0.2);
+                player.setCollideWorldBounds(true);
+
+                this.physics.world.setBounds(0, -1200, 5000, 2000);
+
+                //Code for the animation of the moving sprite
+                this.anims.create({
+                    key: 'left',
+                    frames: this.anims.generateFrameNumbers('robot', { start: 0, end: 3 }),
+                    frameRate: 3,
+                    repeat: -1
+                });
+
+                this.anims.create({
+                    key: 'turn',
+                    frames: [ { key: 'robot', frame: 4 } ],
+                    frameRate: 7
+                });
+
+                this.anims.create({
+                    key: 'right',
+                    frames: this.anims.generateFrameNumbers('robot', { start: 5, end: 8 }),
+                    frameRate: 3,
+                    repeat: -1
+                });
+
+                
+
+                //Code for the velocity caluclations
+                this.physics.add.collider(player, platforms);
+
+                //Score code
+                fuelText = this.add.text(16, 16, 'Fuel: 0', { fontSize: '32px', fill: '#000' });
+                medicalText = this.add.text(16, 64, 'Medication: 0', { fontSize: '32px', fill: '#000' });
+
+                
+                fuelcan = this.physics.add.group({
+                    key: 'fuel',
+                    repeat: 1,
+                    setXY: { x: 12, y: 0, stepX: 70 },
+                    setScale: { x: 0.1, y: 0.1}
+                });
+                
+                this.physics.add.collider(fuelcan, platforms);
+                this.physics.add.overlap(player, fuelcan, collectFuel, null, this);   
+
+                medication = this.physics.add.group({
+                    key: 'medical',
+                    repeat: 1,
+                    setXY: { x: 500, y: 0, stepX: 70 },
+                    setScale: { x: 0.3, y: 0.3}
+                });
+                
+                this.physics.add.collider(medication, platforms);
+                this.physics.add.overlap(player, medication, collectMeds, null, this);
+            }
+            
+
+            function update ()
+            {  
+                this.cameras.main.startFollow(player);
+                //Movement code
+                if (cursors.left.isDown)
+                {
+                    player.setVelocityX(-260)
+                    player.anims.play('left', true);
+                }
+                else if (cursors.right.isDown)
+                {
+                    player.setVelocityX(260);
+                    player.anims.play('right', true);
+                }
+                else
+                {
+                    player.setVelocityX(0);
+
+                    player.anims.play('turn');
+                }
+                if (cursors.up.isDown && player.body.touching.down)
+                {
+                    player.setVelocityY(-330);
+                }
+
+                
+            }
+
+            // function collectStar (player, star)
+            // {
+            //         star.disableBody(true, true);
+
+            //         score += 10;
+            //         scoreText.setText('Score: ' + score);
+
+            //         if (stars.countActive(true) === 0)
+            //         {
+            //             stars.children.iterate(function (child) {
+
+            //                 child.enableBody(true, child.x, 0, true, true);
+
+            //             });
+
+            //             var x = (player.x < 400) ? Phaser.Math.Between(400, 800) : Phaser.Math.Between(0, 400);
+
+            //             var bomb = bombs.create(x, 16, 'bomb');
+            //             bomb.setBounce(1);
+            //             bomb.setCollideWorldBounds(true);
+            //             bomb.setVelocity(Phaser.Math.Between(-200, 200), 20);
+
+            //         }
+
+            // function hitBomb (player, bomb)
+            // {
+            //         this.physics.pause();
+            //         player.setTint(0xff0000);
+            //         player.anims.play('turn');
+            //         gameOver = true;
+
+            //         this.input.on('pointerdown', () => {
+            //         score = 0
+            //         this.physics.resume()
+            //         this.scene.restart()
+            //         })
+            // }
+            function collectFuel (player, fuel)
+            {
+                    fuel.disableBody(true, true);
+                    fuelText.setScrollFactor(1);
+                    fuelscore += 1;
+                    fuelText.setText('Fuel: ' + fuelscore);
+
+            }
+            function collectMeds (player, medical)
+            {
+                    medical.disableBody(true, true);
+                    medicalText.setScrollFactor(1);
+                    medicalScore += 1;
+                    medicalText.setText('Medication: ' + medicalScore);
+
+            }
+            
+        </script>
+    </body>
+</html>
