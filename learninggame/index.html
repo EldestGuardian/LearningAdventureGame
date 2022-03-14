@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <script src="js/phaser/phaser.min.js"></script>
+        <script src="//cdn.jsdelivr.net/npm/phaser@3.24.1/dist/phaser.min.js"></script>
+    </head>
+    <body>
+        <script>
+            // The configuration for all the code in th egame.
+            const phaserConfig = {
+                type: Phaser.AUTO,
+                parent: "game",
+                physics: {
+                    default: 'arcade',
+                    arcade: {
+                        gravity: { y: 300 },
+                        debug: false
+                    }
+                },
+                width: 1280,
+                height: 720,
+                dom: {
+                    createContainer: true
+                },
+                scene: {
+                    init: initScene,
+                    preload: preloadScene,
+                    create: createScene,
+                    update: updateScene
+                }
+            };
+
+            //
+            var player;
+            var platforms;
+            var cursors;
+            var score = 0;
+            var stickscore = 0;
+            var stonescore = 0;
+            var gameOver = false;
+            var score= 0;
+            var scoreText;
+            var sticky;
+            var stones;
+            var npcvar;
+            var npcscore = 0;
+            var nodontdisplaythetextbox = 0;
+            var xaxisincrease = 1000;
+            var yaxisincrease = 650;
+            var ifend = true;
+            var ifend2 = true;
+            var ifclick = true;
+            
+            //Generates a few different random integers to be used throughout the code
+            randint1 = Phaser.Math.Between(1, 20);
+            randint2 = Phaser.Math.Between(1, 20);
+            stickrandint4 = Phaser.Math.Between(2, 7);
+            stonerandint5 = Phaser.Math.Between(2, 7);
+            randgenstick = Phaser.Math.Between(stickrandint4, 8);
+            randgenstone = Phaser.Math.Between(stonerandint5, 8);
+            randSum = randint1 + randint2;
+
+            //Generates a few different random distances to be used throughout the code
+            randdistance1 = Phaser.Math.Between(200, 900)
+            randdistance2 = Phaser.Math.Between(200, 900)
+            randdistance3 = Phaser.Math.Between(1000, 1500)
+            randdistance4 = Phaser.Math.Between(1000, 1500)
+            // Creates the new scenes
+            
+
+            var gameScene = new Phaser.Scene("game");
+
+            const game = new Phaser.Game(phaserConfig);
+            const titleScene = new Phaser.Scene(phaserConfig);
+            
+            // Loads both scenes into the game
+            game.scene.add('titleScene', titleScene);
+            game.scene.add("game", game);
+            
+            // Ensures that the title screen will load first
+            game.scene.start('titleScene');
+            
+            //This title code is incomplete and does not function properly, it was abandoned due to a major bug later in the code.
+            // Title Screen Code STARTS
+            // titleScene.preload = function() {
+            //     this.load.image('background', 'folder/sky.png');
+            // }
+
+            // titleScene.create = function() {
+            //     var bg = this.load.image(0,0,'background');
+            //     bg.setOrigin(0,0);
+
+            //     var button = this.add.text(100,100, 'The Learning Game');
+            //     button.setInteractive({ useHandCursor: true });
+            //     button.on('pointerdown', () => this.clickButton());
+            //     clickButton(); {
+            //         this.scene.switch('gameScene');
+            //     };
+            // }
+            //Title Code ENDS
+
+            // Game Code STARTS
+            function initScene() { 
+
+            }
+            function preloadScene()
+            {
+                this.load.image('sky', 'folder/sky.png');
+                this.load.image('stick', 'folder/stick.png');
+                this.load.image('stone', 'folder/stone.png');
+                this.load.image('grasszero', 'improvedgrass/grasszerov3.png');
+                this.load.image('grassright', 'improvedgrass/grassrightv2.png');
+                this.load.image('grassleft', 'improvedgrass/grassleftv2.png');
+                this.load.image('dirtlong', 'folder/dirtlong.png');
+                this.load.image('birchtree', 'folder/birchtree.png');
+                this.load.image('npc', 'folder/npc1v2.png');
+                this.load.spritesheet('robot', 
+                    'assets/robotmovementfinalfix.png',
+                    { frameWidth: 143, frameHeight: 190 }
+                );
+
+                cursors = this.input.keyboard.createCursorKeys();
+
+                this.load.html("form", "form.html");
+            }
+            
+            function createScene()
+            {
+                this.add.image(-750,300,'sky').setScale(1.7);
+                this.add.image(100,300,'sky').setScale(1.7);
+                this.add.image(950,300,'sky').setScale(1.7);
+                this.add.image(1800,300,'sky').setScale(1.7);
+
+                //All collidable platforms
+                platforms = this.physics.add.staticGroup();
+
+                platforms.create(-600, 650, 'grasszero').setScale(0.4).refreshBody();
+                platforms.create(-600, 840, 'dirtlong').setScale(0.4).refreshBody();
+                platforms.create(-200, 650, 'grasszero').setScale(0.4).refreshBody();
+                platforms.create(-200, 840, 'dirtlong').setScale(0.4).refreshBody();
+                platforms.create(200, 650, 'grasszero').setScale(0.4).refreshBody();
+                platforms.create(200, 840, 'dirtlong').setScale(0.4).refreshBody();
+                platforms.create(600, 650, 'grasszero').setScale(0.4).refreshBody();
+                platforms.create(600, 840, 'dirtlong').setScale(0.4).refreshBody();
+                platforms.create(1000, 650, 'grasszero').setScale(0.4).refreshBody();
+                platforms.create(1000, 840, 'dirtlong').setScale(0.4).refreshBody();
+                // platforms.create(1400, 650, 'grasszero').setScale(0.4).refreshBody();
+                // platforms.create(1400, 840, 'dirtlong').setScale(0.4).refreshBody();
+                this.add.image(500, 305, 'birchtree').setScale(0.5);
+                
+                //Makes the robot the maincharacter
+                player = this.physics.add.sprite(200, 100, 'robot');
+                
+                //Rebound of the bounce to add realism
+                player.setBounce(0.2);
+                
+                //Sets the world bounds
+                this.physics.world.setBounds(0, -1200, 50000, 20000);
+                player.setCollideWorldBounds(true);
+
+
+                //Code for the animation of the moving sprite
+                this.anims.create({
+                    key: 'left',
+                    frames: this.anims.generateFrameNumbers('robot', { start: 0, end: 3 }),
+                    frameRate: 3,
+                    repeat: -1
+                });
+
+                this.anims.create({
+                    key: 'turn',
+                    frames: [ { key: 'robot', frame: 4 } ],
+                    frameRate: 7
+                });
+
+                this.anims.create({
+                    key: 'right',
+                    frames: this.anims.generateFrameNumbers('robot', { start: 5, end: 8 }),
+                    frameRate: 3,
+                    repeat: -1
+                });
+
+                //Code for the velocity caluclations
+                this.physics.add.collider(player, platforms);
+
+                stickText = this.add.text(16, 100, "Sticks: 0", { fontSize: '32px', fill: '#000' });
+                stoneText = this.add.text(16, 100, "Stones: 0", { fontSize: '32px', fill: '#000' });
+                
+                //STICK PHYSICS
+                sticky = this.physics.add.group({
+                    key: 'stick',
+                    repeat: randgenstick,
+                    setXY: { x: randdistance3, y: 0, stepX: randdistance1 },
+                    setScale: { x: 0.3, y: 0.3}
+                });
+                
+                this.physics.add.collider(sticky, platforms);
+                this.physics.add.overlap(player, sticky, collectStick, null, this);   
+
+                //STONE PHYSICS
+                stones = this.physics.add.group({
+                    key: 'stone',
+                    repeat: randgenstone,
+                    setXY: { x: randdistance4, y: 0, stepX: randdistance2 },
+                    setScale: { x: 0.3, y: 0.3}
+                });
+                
+                this.physics.add.collider(stones, platforms);
+                this.physics.add.overlap(player, stones, collectStone, null, this);   
+
+                this.guidenpc1 = this.add.image(900, 471, 'npc').setScale(1).setInteractive();
+                
+                // Input text box
+                this.nameInput = this.add.dom(730, 330).createFromCache("form");
+
+                message = this.add.text(1000, 250, "Click the guide to recieve the quest.", {
+                    color: "#00000",
+                    fontSize: 40,
+                }).setOrigin(0.5);
+
+                this.returnKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
+                
+                if (ifclick){
+                    this.guidenpc1.on('pointerdown', function(pointer) {
+                        message.setText("Can you tell me what " + randint1 + " + " + randint2 + " is?");
+                        let div = document.getElementById('input-form');
+                        if (div.style.display == 'none' && ifend) {
+                            div.style.display = 'block';
+                            ifend = false;
+                        }
+                        ifclick = false;
+                    });
+                }
+                
+
+                this.returnKey.on("down", event => {
+                    answer = this.nameInput.getChildByName("answer");
+                    if(answer.value != "") {
+                        if (answer.value != randSum){
+                            message.setText("That is not the right answer.");
+                            this.time.addEvent({
+                                delay: 1200,
+                                callback: ()=>{
+                                    message.setText("Can you tell me what " + randint1 + " + " + randint2 + " is?");
+                                },
+                                loop: false
+                            })
+                        }
+                        else {
+                            message.setText("Correct!");
+                            let div = document.getElementById('input-form');
+                            if (div.style.display == 'block') {
+                                div.style.display = 'none';
+                            }
+                            this.time.addEvent({
+                                delay: 1200,
+                                callback: ()=>{
+                                    message.setText("Can you get atleast "+ stickrandint4 +" sticks and " + stonerandint5 + " stones for me?");
+                                },
+                                loop: false
+                            })   
+                            this.time.addEvent({
+                                delay: 3600,
+                                callback: ()=>{
+                                    message.setText("Explore the right to find some.");
+                                    this.guidenpc1.on('pointerdown', function(pointer) {
+                                        if (stickscore < stickrandint4) {
+                                            message.setText("Come back when you found "+ stickrandint4 +" sticks and " + stonerandint5 + " stones.");
+                                        }
+                                        else {
+                                            message.setText("How many items do i have if I multiply the stones and sticks together?");
+                                            if (div.style.display == 'none') {
+                                                    div.style.display = 'block';
+                                            }
+                                            // Beyond this point in the create() function is the code that should theoretically work although it does not. There is certainly a reason why it does not work, although it is unknown.
+                                            // The error it outputs is a very broad and general error, not describing that of which is actually incorrect.
+                                            if(answer.value != "") {
+                                                // Calculates how much the sticks are worth depending on how many sticks are collected
+                                                totalsum = stickscore*stonescore;
+                                                // Here is where the bug is. It is visible that the game ends here anyway although this does not allow the player to naturally complete the game as intended.
+                                                if (answer = totalsum) {
+                                                    message.setText("You have completed the tutorial!");
+                                                    let div2 = document.getElementById('input-form');
+                                                    time.addEvent({
+                                                        delay: 1200,
+                                                        callback: ()=>{
+                                                            message.setText("You will now return to the title screen.");
+                                                        },
+                                                        loop: false
+                                                    })
+                                                }
+                                                else {
+                                                    message.setText("That is not the right answer.");
+                                                        this.time.addEvent({
+                                                            delay: 1200,
+                                                            callback: ()=>{
+                                                                message.setText("If 1 stick is worth 2 coins, how many coins do you have in total?");
+                                                            },
+                                                            loop: false
+                                                        })
+                                                }
+                                        
+                                            }
+                                        }
+                                    });
+                                },
+                                loop: false
+                            })
+                        }
+                        answer.value = "";
+                    }
+                });
+                
+            }
+            function updateScene()
+            {  
+                this.cameras.main.startFollow(player);
+                stickText.x = player.body.position.x-550;  
+                stickText.y = player.body.position.y-250;  
+                stoneText.x = player.body.position.x-550;  
+                stoneText.y = player.body.position.y-200;  
+                //Movement code
+                if (cursors.left.isDown)
+                {
+                    player.setVelocityX(-300)
+                    player.anims.play('left', true);
+                }
+                else if (cursors.right.isDown)
+                {
+                    player.setVelocityX(300);
+                    player.anims.play('right', true);
+                }
+                else
+                {
+                    player.setVelocityX(0);
+
+                    player.anims.play('turn');
+                }
+                if (cursors.up.isDown && player.body.onFloor())
+                {
+                    player.setVelocityY(-300);
+                }
+
+                // random world generation
+                // create the coorinates of the first block
+                // take the x coord and add 400 onto it
+                xaxisincrease = xaxisincrease + 576;
+                // make a new y coord between -100 and 100 to simulate depth
+                yaxisminus = yaxisincrease - 100;
+                yaxisplus = yaxisincrease + 100;
+                // find the random y coord
+                yaxisincrease = Phaser.Math.Between(yaxisminus, yaxisplus);
+                // add them both into a platforms.create
+                grassaxisleft = yaxisincrease + 40;
+                grassaxisright = yaxisincrease - 40;
+
+                if (yaxisincrease > grassaxisleft)
+                {
+                    platforms.create(xaxisincrease, yaxisincrease, 'grassleft').setScale(0.4).refreshBody();
+                }
+                else if (yaxisincrease < grassaxisright)
+                {
+                    platforms.create(xaxisincrease, yaxisincrease, 'grassright').setScale(0.4).refreshBody();
+                }
+                else
+                {
+                    platforms.create(xaxisincrease, yaxisincrease, 'grasszero').setScale(0.4).refreshBody();
+                }
+
+                // create the dirt coords
+                xaxisdirt=xaxisincrease;
+                yaxisdirt=yaxisincrease+190;
+                yaxisdirt2=yaxisdirt+190;
+                // // create the blocks
+                platforms.create(xaxisdirt, yaxisdirt, 'dirtlong').setScale(0.4).refreshBody();
+                platforms.create(xaxisdirt, yaxisdirt2, 'dirtlong').setScale(0.4).refreshBody();
+
+            }
+            function collectStick (player, stick)
+            {
+                    stick.disableBody(true, true);
+                    stickText.setScrollFactor(1);
+                    stickscore += 1;
+                    stickText.setText('Sticks: ' + stickscore);
+
+            }
+            function collectStone (player, stone)
+            {
+                    stone.disableBody(true, true);
+                    stoneText.setScrollFactor(1);
+                    stonescore += 1;
+                    stoneText.setText('Stones: ' + stonescore);
+            }
+
+        </script>
+    </body>
+</html>

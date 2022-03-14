@@ -1,0 +1,85 @@
+BEGIN
+    VAR = random numbers
+    VAR = sum of random numbers
+    VAR = multiplied of random numbers
+    VAR = random numbers used as coordinates
+    VAR stone sprite = 0
+    VAR stick sprite = 0
+
+    load title screen
+    start on title screen
+    PRINT The Learning Game
+    IF play button is clicked
+        load game
+        DISPLAY game
+    ENDIF
+
+    CREATE sprites
+    CREATE sticks and stones at VAR coordinates
+    CREATE npc sprite
+
+    DISPLAY stick score
+    DISPLAY stone score
+
+    set bounce of player
+    player collides with objects = true
+
+    IF left arrow key is pressed THEN
+        subtract x axis
+    ENDIF
+    
+    IF right arrow key is pressed THEN
+        add x axis
+    ENDIF
+    
+    IF up arrow key is pressed THEN
+        subtract y axis
+    ENDIF
+    
+    IF npc is clicked THEN
+        INPUT Can you tell me what VAR + VAR is?
+        DISPLAY input box
+    ENDIF
+
+    IF INPUT != VAR
+        THEN PRINT That answer is wrong.
+    ELSE
+        PRINT Correct!
+        PRINT Can you collect VAR sticks and VAR stones?
+        HIDE INPUT
+    ENDIF
+    
+    IF player has collected VAR sticks and VAR stones THEN
+        INPUT How many items do I have if I multiply sticks and stones together
+        DISPLAY INPUT
+        IF INPUT = VAR THEN
+            PRINT You have completed the tutorial!
+        ELSE
+            PRINT That answer is wrong
+        ENDIF
+    ELSE
+        PRINT Come back to me when you found VAR sticks and VAR stones
+    ENDIF
+
+    VAR xaxis = xaxis + width of sprite
+    VAR yaxisminus = VAR yaxisincrease - height of sprite;
+    VAR yaxisplus = VAR yaxisincrease + height of sprite;
+    VAR yaxisrandom = random coordinates between VAR yaxismins AND VAR yaxisplus
+    
+    CREATE ground sprites at VAR xaxis AND VAR yaxisrandom
+
+    CAMERA follow player
+
+    FUNCTION collect stick
+        IF player touching stick sprite THEN
+            HIDE stick sprite
+            VAR score of stick + 1
+        ENDIF
+    END FUNCTION 
+    FUNCTION collect stone
+        IF player touching stone sprite THEN
+            HIDE stone sprite
+            VAR score of stone + 1
+        ENDIF
+    END FUNCTION
+END
